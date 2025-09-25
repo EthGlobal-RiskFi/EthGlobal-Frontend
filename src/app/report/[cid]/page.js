@@ -1,4 +1,5 @@
 "use client";
+import { use } from "react";
 import Navbar from "../../../components/Navbar";
 import ReportCard from "../../../components/ReportCard";
 import VaRChart from "../../../components/VaRChart";
@@ -8,7 +9,8 @@ import NotesPanel from "../../../components/NotesPanel";
 import TeamShare from "../../../components/TeamShare";
 
 export default function ReportPage({ params }) {
-  const { cid } = params || { cid: "mock-report-cid" };
+  const resolvedParams = use(params);
+  const { cid } = resolvedParams ?? { cid: "mock-report-cid" };
 
   return (
     <>

@@ -1,4 +1,6 @@
+// src/app/layout.js
 import "../styles/globals.css";
+import ReownProvider from "../providers/ReownProvider";
 
 export const metadata = {
   title: "CipherHealth — Starter",
@@ -9,7 +11,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="min-h-screen">
-        {children}
+        <ReownProvider>{children}</ReownProvider>
       </body>
     </html>
   );
