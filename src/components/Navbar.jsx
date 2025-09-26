@@ -1,17 +1,12 @@
 // src/components/Navbar.jsx
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import {
-  useAccount,
-  useConnect,
-  useDisconnect,
-  useEnsName,
-} from "wagmi";
 import { ethers } from "ethers";
 import useOutsideClick from "../hooks/useOutsideClick";
+import { useWallet } from "../providers/WalletProvider";
 
 // lazy-load AuthModal to improve initial load
 const AuthModal = dynamic(() => import("./AuthModal"), { ssr: false });
@@ -26,12 +21,9 @@ export default function Navbar() {
   // auth modal
   const [open, setOpen] = useState(false);
 
-  // wagmi hooks
-  const { address, isConnected } = useAccount();
-  const { data: ensName } = useEnsName({ address });
-  const { connect, connectors, isLoading: connectLoading, pendingConnector } =
-    useConnect();
-  const { disconnect } = useDisconnect();
+  // wallet provider (lightweight)
+  const { address, provider, connectWallet, disconnect } = useWallet();
+  const isConnected = !!address;
 
   // dropdown states
   const [walletMenuOpen, setWalletMenuOpen] = useState(false);
@@ -41,7 +33,9 @@ export default function Navbar() {
   const connectRef = useRef(null);
   const walletRef = useRef(null);
 
-  // close menus when clicking outside or pressing Escape
+  // ENS name
+  const [ensName, setEnsName] = useState(null);
+
   useOutsideClick(connectRef, {
     onOutside: () => setConnectMenuOpen(false),
     onEscape: () => setConnectMenuOpen(false),
@@ -61,6 +55,27 @@ export default function Navbar() {
     }
   }, [address]);
 
+  // lookup ENS when address changes (use provider if available, else fallback)
+  useEffect(() => {
+    let mounted = true;
+    async function lookupENS() {
+      setEnsName(null);
+      if (!address) return;
+      try {
+        const lookupProvider = provider ?? ethers.getDefaultProvider();
+        const name = await lookupProvider.lookupAddress(address);
+        if (!mounted) return;
+        setEnsName(name || null);
+      } catch (e) {
+        if (mounted) setEnsName(null);
+      }
+    }
+    lookupENS();
+    return () => {
+      mounted = false;
+    };
+  }, [address, provider]);
+
   // body scroll lock while any dropdown open
   useEffect(() => {
     const anyOpen = connectMenuOpen || walletMenuOpen;
@@ -71,11 +86,8 @@ export default function Navbar() {
     };
   }, [connectMenuOpen, walletMenuOpen]);
 
-  // helper to handle connector click (closes menu and attempts connect)
-  function handleConnectorClick(connector) {
-    // attempt connect (wagmi will handle prompts)
-    connect({ connector });
-    // close menu immediately to avoid multiple modals stacking
+  async function handleConnectClick() {
+    await connectWallet();
     setConnectMenuOpen(false);
   }
 
@@ -89,10 +101,9 @@ export default function Navbar() {
             </div>
 
             <div className="hidden md:flex items-center gap-3 text-sm text-gray-600">
-              {/* <Link href="/features" className="hover:text-indigo-600">Features</Link>
-              <Link href="/how-it-works" className="hover:text-indigo-600">How it works</Link>
-              <Link href="/docs" className="hover:text-indigo-600">Docs</Link> */}
-              <Link href="/reports" className="hover:text-indigo-600">Reports</Link>
+              <Link href="/reports" className="hover:text-indigo-600">
+                Reports
+              </Link>
             </div>
           </div>
 
@@ -128,21 +139,18 @@ export default function Navbar() {
                     className="absolute right-0 mt-2 w-60 bg-white border rounded shadow-lg z-50"
                   >
                     <div className="py-2">
-                      {connectors.map((c) => (
-                        <button
-                          key={c.id}
-                          onClick={() => handleConnectorClick(c)}
-                          disabled={!c.ready}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm flex items-center justify-between"
-                        >
-                          <span>{c.name}</span>
-                          {!c.ready ? (
-                            <span className="text-xs text-red-400">Not available</span>
-                          ) : connectLoading && pendingConnector?.id === c.id ? (
-                            <span className="text-xs text-gray-500">Connecting…</span>
-                          ) : null}
-                        </button>
-                      ))}
+                      <button
+                        onClick={handleConnectClick}
+                        className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm"
+                      >
+                        Connect with MetaMask / Injected Wallet
+                      </button>
+
+                      {!typeof window === "undefined" && !window?.ethereum ? (
+                        <div className="px-3 py-2 text-xs text-red-500">
+                          No injected wallet found in this browser
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 )}
@@ -185,7 +193,9 @@ export default function Navbar() {
                           onClick={async () => {
                             try {
                               await navigator.clipboard.writeText(normalizedAddress ?? address);
-                            } catch (e) {}
+                            } catch (e) {
+                              /* ignore */
+                            }
                             setWalletMenuOpen(false);
                           }}
                           className="px-3 py-1 text-sm border rounded"

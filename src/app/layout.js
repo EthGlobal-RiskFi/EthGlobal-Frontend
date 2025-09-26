@@ -1,17 +1,20 @@
 // src/app/layout.js
 import "../styles/globals.css";
-import ReownProvider from "../providers/ReownProvider";
+import Navbar from "../components/Navbar";
+import { WalletProvider } from "../providers/WalletProvider";
 
 export const metadata = {
   title: "CipherHealth — Starter",
-  description: "Frontend starter for CipherHealth dApp",
+  description: "Frontend for CipherHealth dApp",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="min-h-screen">
-        <ReownProvider>{children}</ReownProvider>
+        <WalletProvider>
+          {children}
+        </WalletProvider>
       </body>
     </html>
   );

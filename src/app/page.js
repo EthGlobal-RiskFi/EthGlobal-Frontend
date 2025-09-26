@@ -5,6 +5,7 @@ import TokenInput from "../components/TokenInput";
 import AgentProgress from "../components/AgentProgress";
 import MarketInsights from "../components/MarketInsights";
 import ChatBotPlaceholder from "../components/ChatBotPlaceholder";
+import PivotChart from "../components/PivotChart";
 
 export default function Page() {
   return (
@@ -19,6 +20,7 @@ export default function Page() {
           </div>
           <div className="space-y-4">
             <MarketInsights />
+            <PivotChart />
             <ChatBotPlaceholder />
           </div>
         </div>
