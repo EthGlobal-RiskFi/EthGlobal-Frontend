@@ -1,7 +1,7 @@
 // src/components/PivotChart.jsx
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import useCsv from "../hooks/useCsv";
 import {
   ResponsiveContainer,
@@ -13,18 +13,12 @@ import {
   Tooltip,
 } from "recharts";
 
-// Formatters
+// Helpers
 const formatDate = (v) => {
   if (!v) return "";
   const n = Number(v);
-  let d;
-  if (Number.isFinite(n)) {
-    const ms = n < 1e12 ? n * 1000 : n;
-    d = new Date(ms);
-  } else {
-    d = new Date(v);
-  }
-  if (!d || isNaN(d.getTime())) return String(v);
+  const d = Number.isFinite(n) ? new Date(n < 1e12 ? n * 1000 : n) : new Date(v);
+  if (isNaN(d.getTime())) return String(v);
   return d.toLocaleDateString(undefined, {
     day: "2-digit",
     month: "2-digit",
@@ -33,11 +27,8 @@ const formatDate = (v) => {
     minute: "2-digit",
   });
 };
-
-const formatUSD = (n) => {
-  if (n == null || isNaN(n)) return "—";
-  return "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 });
-};
+const formatUSD = (n) =>
+  n == null || isNaN(n) ? "—" : "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 export default function PivotChart({
   csvPath = "/data/crypto_prices_pivot.csv",
@@ -45,14 +36,20 @@ export default function PivotChart({
 }) {
   const { data: rows, loading, error } = useCsv(csvPath);
 
-  // Column names
+  // Extract columns
   const columns = useMemo(() => (rows[0] ? Object.keys(rows[0]) : []), [rows]);
-  const dateKey = columns[0]; // first column assumed to be date
+  const dateKey = columns[0] || "";
   const tokenKeys = columns.slice(1);
 
-  const [token, setToken] = useState(tokenKeys[0]);
+  // Default to the first token if available
+  const [token, setToken] = useState("");
+  useEffect(() => {
+    if (tokenKeys.length > 0 && !token) {
+      setToken(tokenKeys[0]);
+    }
+  }, [tokenKeys, token]);
 
-  // Build series for the selected token
+  // Build chart data
   const series = useMemo(() => {
     if (!rows?.length || !token || !dateKey) return [];
     return rows.map((r) => ({
@@ -62,16 +59,20 @@ export default function PivotChart({
   }, [rows, token, dateKey]);
 
   return (
-    <section className="p-4 bg-white rounded shadow">
-      <div className="flex items-center justify-between mb-3">
+    <section className="p-4 bg-white rounded-2xl shadow border">
+      <div className="flex items-center justify-between mb-3 gap-3">
         <h2 className="text-xl font-bold">Token Price Over Time</h2>
 
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Token:</label>
+          <label className="text-sm text-gray-600" htmlFor="pivot-token">
+            Token:
+          </label>
           <select
-            value={token || ""}
+            id="pivot-token"
+            value={token}
             onChange={(e) => setToken(e.target.value)}
             className="border rounded px-2 py-1 text-sm"
+            disabled={loading || tokenKeys.length === 0}
           >
             {tokenKeys.map((k) => (
               <option key={k} value={k}>
@@ -82,12 +83,16 @@ export default function PivotChart({
         </div>
       </div>
 
-      {error && <div className="text-sm text-red-500 mb-2">Error: {error}</div>}
+      {error && (
+        <div className="text-sm text-red-500 mb-2">Error: {String(error)}</div>
+      )}
 
       {loading ? (
         <div className="h-72 bg-gray-50 animate-pulse rounded" />
-      ) : !token || series.length === 0 ? (
-        <div className="text-sm text-gray-500">No pivot data.</div>
+      ) : series.length === 0 ? (
+        <div className="h-72 flex items-center justify-center text-gray-400 text-sm rounded border border-dashed">
+          No data for the selected token.
+        </div>
       ) : (
         <div style={{ width: "100%", height }}>
           <ResponsiveContainer>

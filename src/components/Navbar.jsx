@@ -100,11 +100,11 @@ export default function Navbar() {
               <Link href="/">CipherHealth</Link>
             </div>
 
-            <div className="hidden md:flex items-center gap-3 text-sm text-gray-600">
+            {/* <div className="hidden md:flex items-center gap-3 text-sm text-gray-600">
               <Link href="/reports" className="hover:text-indigo-600">
                 Reports
               </Link>
-            </div>
+            </div> */}
           </div>
 
           <div className="flex items-center gap-3">
