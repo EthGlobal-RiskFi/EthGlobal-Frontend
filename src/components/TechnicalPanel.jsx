@@ -66,7 +66,7 @@ function Card({ label, value, sub }) {
 /* ---------------- main ---------------- */
 export default function TechnicalPanel({
   apiBase = process.env.NEXT_PUBLIC_TECH_API_BASE ||
-    "http://127.0.0.1:5000",
+    "http://10.125.9.225:5000",
   defaultTicker = "AAVE",
   tickers = [
     "AAVE",
@@ -76,7 +76,6 @@ export default function TechnicalPanel({
     "COMP",
     "SUSHI",
     "UNI",
-    "ETH",
     "BTC",
     "USDC",
     "DAI",

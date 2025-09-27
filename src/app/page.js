@@ -8,6 +8,7 @@ import PivotChart from "../components/PivotChart";
 import ChatBotPlaceholder from "../components/ChatBotPlaceholder";
 import RiskPanel from "../components/RiskPanel";
 import TechnicalPanel from "../components/TechnicalPanel";
+import Footer from "../components/Footer"; // <-- add this
 
 export default function Page() {
   return (
@@ -21,29 +22,28 @@ export default function Page() {
           <LandingHero />
         </section>
 
-        {/* Risk Panel (narrower) + Token Analyzer + ChatBot (wider) */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Risk panel */}
-          <div className="lg:col-span-7">
-            <RiskPanel alpha={0.90} />
-          </div>
+        {/* Token Analyzer */}
+        <section className="panel">
+          <h3 className="section-title mb-3">ERC-20 Token Analyzer</h3>
+          <TokenInput />
+        </section>
 
-          {/* Token analyzer + Chatbot */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="panel">
-              <h3 className="section-title mb-3">ERC-20 Token Analyzer</h3>
-              <TokenInput />
-            </div>
-            <ChatBotPlaceholder />
-          </div>
+        {/* Chatbot */}
+        <section>
+          <ChatBotPlaceholder />
+        </section>
+
+        {/* Risk Panel */}
+        <section>
+          <RiskPanel alpha={0.90} />
         </section>
 
         {/* Market carousel */}
         <section>
           <MarketInsights />
         </section>
-        
-        {/*Technical chart */}
+
+        {/* Technical chart */}
         <section>
           <TechnicalPanel />
         </section>
@@ -52,8 +52,8 @@ export default function Page() {
         <section>
           <PivotChart />
         </section>
-
       </main>
+      <Footer /> {/* <-- add this */}
     </>
   );
 }
