@@ -28,7 +28,7 @@ export default function TokenInput() {
   const [example] = useState("0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE"); // SHIB
   // Configure a real endpoint here (or via NEXT_PUBLIC_POST_URL) in production.
   // Leave empty to skip posting balances to an external endpoint.
-  const POST_URL = "http://10.200.6.32:5000/portfolio_metrics";
+  const POST_URL = "http://127.0.0.1:5000/portfolio_metrics";
 
   // Small helper to validate http/https URLs before attempting fetch.
   function isValidHttpUrl(str) {

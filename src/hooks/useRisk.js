@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 /**
  * useRisk({ baseUrl, ticker, alpha, days })
- * - baseUrl: e.g. http://10.200.6.32:5000
+ * - baseUrl: e.g. http://127.0.0.1:5000
  * - ticker: e.g. "AAVE"
  * - alpha: float 0..1 (e.g., 0.95)
  * - days: integer (e.g., 1)

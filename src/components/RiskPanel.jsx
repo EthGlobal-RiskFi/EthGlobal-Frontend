@@ -100,7 +100,7 @@ function RiskSkeleton() {
 
 /* ----------------- main ----------------- */
 export default function RiskPanel({
-  apiBase = process.env.NEXT_PUBLIC_RISK_API_BASE || "http://10.200.6.32:5000",
+  apiBase = process.env.NEXT_PUBLIC_RISK_API_BASE || "http://127.0.0.1:5000",
   defaultTicker = "WBTC",
   tickers = [
     "AAVE",
