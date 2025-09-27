@@ -1,7 +1,7 @@
 // src/components/RiskPanel.jsx
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useRisk from "../hooks/useRisk";
 
 /* ----------------- helpers ----------------- */
@@ -17,15 +17,21 @@ const levelStyles = {
 
 function Gauge({ value = 0, max = 10 }) {
   const pctVal = Math.max(0, Math.min(100, (value / max) * 100));
-  const color = value < 3 ? "bg-green-500" : value < 7 ? "bg-yellow-500" : "bg-red-500";
+  const color =
+    value < 3 ? "bg-green-500" : value < 7 ? "bg-yellow-500" : "bg-red-500";
   return (
     <div className="w-full">
       <div className="flex items-baseline justify-between mb-1">
         <div className="text-sm text-gray-600">Risk score</div>
-        <div className="text-sm font-medium">{value?.toFixed?.(2)} / {max}</div>
+        <div className="text-sm font-medium">
+          {value?.toFixed?.(2)} / {max}
+        </div>
       </div>
       <div className="h-2.5 w-full bg-gray-100 rounded-full overflow-hidden border border-gray-200">
-        <div className={`h-full ${color} transition-all`} style={{ width: `${pctVal}%` }} />
+        <div
+          className={`h-full ${color} transition-all`}
+          style={{ width: `${pctVal}%` }}
+        />
       </div>
     </div>
   );
@@ -94,9 +100,21 @@ function RiskSkeleton() {
 
 /* ----------------- main ----------------- */
 export default function RiskPanel({
-  apiBase = process.env.NEXT_PUBLIC_RISK_API_BASE || "http://10.200.11.202:5000",
+  apiBase = process.env.NEXT_PUBLIC_RISK_API_BASE || "http://10.200.6.32:5000",
   defaultTicker = "WBTC",
-  tickers = ["AAVE", "WBTC", "LINK", "MATIC", "COMP", "SUSHI", "UNI", "USDC", "DAI", "ETH", "BTC"],
+  tickers = [
+    "AAVE",
+    "WBTC",
+    "LINK",
+    "MATIC",
+    "COMP",
+    "SUSHI",
+    "UNI",
+    "USDC",
+    "DAI",
+    "ETH",
+    "BTC",
+  ],
 }) {
   // Controls
   const [ticker, setTicker] = useState(defaultTicker);
@@ -115,8 +133,8 @@ export default function RiskPanel({
   const ra = data?.risk_assessment;
   const core = ra?.risk_assessment;
   const varm = ra?.var_metrics;
-  const add  = ra?.additional_risk_metrics;
-  const vae  = ra?.vae_specific_metrics;
+  const add = ra?.additional_risk_metrics;
+  const vae = ra?.vae_specific_metrics;
 
   // UI
   const level = core?.risk_level || "—";
@@ -144,7 +162,10 @@ export default function RiskPanel({
           keep content visible and show a soft overlay spinner */}
       {!initialLoading && loading && (
         <div className="absolute inset-0 rounded-2xl bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
-          <div className="h-8 w-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" aria-label="Loading" />
+          <div
+            className="h-8 w-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"
+            aria-label="Loading"
+          />
         </div>
       )}
 
@@ -154,7 +175,9 @@ export default function RiskPanel({
           {/* Header: title + badge */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Risk — {effectiveTicker}</h2>
-            <span className={`px-4 py-2 rounded-full text-sm font-semibold border ${badgeClass}`}>
+            <span
+              className={`px-4 py-2 rounded-full text-sm font-semibold border ${badgeClass}`}
+            >
               {level.toUpperCase()} RISK
             </span>
           </div>
@@ -170,7 +193,9 @@ export default function RiskPanel({
                 className="border rounded-md px-2 py-1"
               >
                 {tickers.map((t) => (
-                  <option key={t} value={t}>{t}</option>
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
                 ))}
               </select>
             </label>
@@ -250,31 +275,62 @@ export default function RiskPanel({
             <MetricCard label="VaR 90" value={pct(ra?.var_metrics?.var_90)} />
             <MetricCard label="VaR 95" value={pct(ra?.var_metrics?.var_95)} />
             <MetricCard label="VaR 99" value={pct(ra?.var_metrics?.var_99)} />
-            <MetricCard label="VaR (custom)" value={pct(ra?.var_metrics?.var_custom)} />
+            <MetricCard
+              label="VaR (custom)"
+              value={pct(ra?.var_metrics?.var_custom)}
+            />
           </div>
-
 
           {/* Volatility & loss */}
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-            <MetricCard label="Avg daily volatility" value={pct(add?.average_daily_volatility)} />
-            <MetricCard label="Expected shortfall 95" value={pct(add?.expected_shortfall_95)} />
+            <MetricCard
+              label="Avg daily volatility"
+              value={pct(add?.average_daily_volatility)}
+            />
+            <MetricCard
+              label="Expected shortfall 95"
+              value={pct(add?.expected_shortfall_95)}
+            />
             <MetricCard label="Max drawdown" value={pct(add?.max_drawdown)} />
           </div>
 
           {/* VAE stats */}
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-            <MetricCard label="Annualized volatility" value={pct(add?.portfolio_volatility_annualized)} />
+            <MetricCard
+              label="Annualized volatility"
+              value={pct(add?.portfolio_volatility_annualized)}
+            />
             <MetricCard label="Data points" value={vae?.data_points ?? "—"} />
-            <MetricCard label="Recreations" value={vae?.number_of_recreations ?? "—"} />
+            <MetricCard
+              label="Recreations"
+              value={vae?.number_of_recreations ?? "—"}
+            />
           </div>
 
           {/* Vol range */}
           <div className="mt-4 p-3 rounded-lg border bg-white">
-            <div className="text-xs text-gray-500 mb-2">Recreation volatility range</div>
+            <div className="text-xs text-gray-500 mb-2">
+              Recreation volatility range
+            </div>
             <div className="grid grid-cols-3 gap-3 text-sm">
-              <div><span className="text-gray-500">Min:</span> <span className="font-medium">{pct(vae?.recreation_volatility_range?.min)}</span></div>
-              <div><span className="text-gray-500">Mean:</span> <span className="font-medium">{pct(vae?.recreation_volatility_range?.mean)}</span></div>
-              <div><span className="text-gray-500">Max:</span> <span className="font-medium">{pct(vae?.recreation_volatility_range?.max)}</span></div>
+              <div>
+                <span className="text-gray-500">Min:</span>{" "}
+                <span className="font-medium">
+                  {pct(vae?.recreation_volatility_range?.min)}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500">Mean:</span>{" "}
+                <span className="font-medium">
+                  {pct(vae?.recreation_volatility_range?.mean)}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500">Max:</span>{" "}
+                <span className="font-medium">
+                  {pct(vae?.recreation_volatility_range?.max)}
+                </span>
+              </div>
             </div>
           </div>
         </>

@@ -1,12 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { isAddress, getAddress } from "ethers";
-import { useAnalyzeToken } from "../hooks/useAnalyzeToken";
-import Link from "next/link";
-import { FiClipboard, FiCheck, FiLoader, FiAlertCircle } from "react-icons/fi";
 import clsx from "clsx";
+import { getAddress, isAddress } from "ethers";
+import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { FiAlertCircle, FiCheck, FiClipboard, FiLoader } from "react-icons/fi";
+import sampleData from "../../public/sample.json";
+import { useAnalyzeToken } from "../hooks/useAnalyzeToken";
+import { useTheGraph } from "../lib/theGraph";
+import RiskMetricsHexagon from "./RiskMetricsHexagon";
+import TokenBreakdownChart from "./TokenBreakDownChart";
 
 /**
  * TokenInput component (fixed)
@@ -20,9 +24,24 @@ export default function TokenInput() {
   const [address, setAddress] = useState("");
   const [inputState, setInputState] = useState("idle"); // idle|valid|invalid|submitting
   const [message, setMessage] = useState("");
+  const [metricsData, setMetricsData] = useState(null);
   const [example] = useState("0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE"); // SHIB
+  // Configure a real endpoint here (or via NEXT_PUBLIC_POST_URL) in production.
+  // Leave empty to skip posting balances to an external endpoint.
+  const POST_URL = "http://10.200.6.32:5000/portfolio_metrics";
+
+  // Small helper to validate http/https URLs before attempting fetch.
+  function isValidHttpUrl(str) {
+    try {
+      const u = new URL(str);
+      return u.protocol === "http:" || u.protocol === "https:";
+    } catch (e) {
+      return false;
+    }
+  }
 
   const { status, job, report, error, startAnalyze } = useAnalyzeToken();
+  const { getBalances } = useTheGraph();
 
   useEffect(() => {
     if (status === "running") {
@@ -123,6 +142,47 @@ export default function TokenInput() {
     setAddress(res.normalized);
     setInputState("submitting");
     setMessage("Submitting job...");
+    // Use sample data and POST it to the URL
+    try {
+      setMessage("Using sample data for analysis...");
+      const balances = sampleData;
+      console.log("Using sample balances:", balances);
+
+      // POST the sample data to the endpoint
+      const urlToUse = POST_URL;
+      if (!urlToUse) {
+        console.warn("No POST_URL configured; skipping POST of balances.");
+        setMessage("No POST endpoint configured; skipping POST.");
+      } else if (!isValidHttpUrl(urlToUse)) {
+        console.warn(
+          "Configured POST_URL is invalid, skipping POST:",
+          urlToUse
+        );
+        setMessage("Configured POST endpoint is invalid; skipping POST.");
+      } else {
+        setMessage(`Posting sample data to ${urlToUse}...`);
+        const resp = await fetch(urlToUse, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sampleData),
+        });
+
+        if (!resp.ok) {
+          const txt = await resp.text().catch(() => "");
+
+          console.error("POST failed:", resp.status, txt);
+          setMessage(`Failed to POST balances: HTTP ${resp.status}`);
+        } else {
+          const responseData = await resp.json();
+          console.log("Received response data:", responseData);
+          setMetricsData(responseData);
+          setMessage("Risk metrics calculated successfully.");
+        }
+      }
+    } catch (err) {
+      console.error("Error using/posting sample data:", err);
+      setMessage("Error using/posting sample data for analysis...");
+    }
     try {
       await startAnalyze(res.normalized, 1);
     } catch (err) {
@@ -228,6 +288,27 @@ export default function TokenInput() {
           </div>
         </div>
       </form>
+      {metricsData && (
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-4"
+          >
+            <RiskMetricsHexagon data={metricsData} />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-4"
+          >
+            <TokenBreakdownChart data={metricsData} />
+          </motion.div>
+        </>
+      )}
 
       <AnimatePresence>
         {job?.id && (
@@ -254,7 +335,10 @@ export default function TokenInput() {
                   </motion.div>
                   <div>
                     <div className="text-xs text-gray-500">Report ready</div>
-                    <Link href={`/report/${report.cid || report.cid}`} className="text-sm text-indigo-600">
+                    <Link
+                      href={`/report/${report.cid || report.cid}`}
+                      className="text-sm text-indigo-600"
+                    >
                       Open report
                     </Link>
                   </div>

@@ -1,0 +1,102 @@
+{
+  "WBTC": {
+    "current": 12.5432,
+    "history": [
+      {
+        "datetime": "2025-08-28 00:00:00",
+        "contract": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+        "balance": 12.5432
+      },
+      {
+        "datetime": "2025-08-27 00:00:00",
+        "contract": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+        "balance": 10.8421
+      },
+      {
+        "datetime": "2025-08-26 00:00:00",
+        "contract": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+        "balance": 11.3275
+      }
+    ]
+  },
+  "USDC": {
+    "current": 25432.78,
+    "history": [
+      {
+        "datetime": "2025-08-28 00:00:00",
+        "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "balance": 25432.78
+      },
+      {
+        "datetime": "2025-08-27 00:00:00",
+        "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "balance": 24005.12
+      },
+      {
+        "datetime": "2025-08-26 00:00:00",
+        "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "balance": 22014.67
+      }
+    ]
+  },
+  "USDT": {
+    "current": 18976.45,
+    "history": [
+      {
+        "datetime": "2025-08-28 00:00:00",
+        "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "balance": 18976.45
+      },
+      {
+        "datetime": "2025-08-27 00:00:00",
+        "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "balance": 20012.54
+      },
+      {
+        "datetime": "2025-08-26 00:00:00",
+        "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "balance": 17850.0
+      }
+    ]
+  },
+  "SHIB": {
+    "current": 502341.12,
+    "history": [
+      {
+        "datetime": "2025-08-28 00:00:00",
+        "contract": "0xba2ae424d960c26247dd6c32edc70b295c744c43",
+        "balance": 502341.12
+      },
+      {
+        "datetime": "2025-08-27 00:00:00",
+        "contract": "0xba2ae424d960c26247dd6c32edc70b295c744c43",
+        "balance": 498124.0
+      },
+      {
+        "datetime": "2025-08-26 00:00:00",
+        "contract": "0xba2ae424d960c26247dd6c32edc70b295c744c43",
+        "balance": 510234.55
+      }
+    ]
+  },
+  "LINK": {
+    "current": 4321.56,
+    "history": [
+      {
+        "datetime": "2025-08-28 00:00:00",
+        "contract": "0x514910771af9ca656af840dff83e8264ecf986ca",
+        "balance": 4321.56
+      },
+      {
+        "datetime": "2025-08-27 00:00:00",
+        "contract": "0x514910771af9ca656af840dff83e8264ecf986ca",
+        "balance": 4102.87
+      },
+      {
+        "datetime": "2025-08-26 00:00:00",
+        "contract": "0x514910771af9ca656af840dff83e8264ecf986ca",
+        "balance": 3890.12
+      }
+    ]
+  }
+}

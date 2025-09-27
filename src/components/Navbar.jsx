@@ -1,10 +1,10 @@
 // src/components/Navbar.jsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ethers } from "ethers";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { ethers } from "ethers";
+import { useEffect, useMemo, useRef, useState } from "react";
 import useOutsideClick from "../hooks/useOutsideClick";
 import { useWallet } from "../providers/WalletProvider";
 
@@ -23,6 +23,7 @@ export default function Navbar() {
 
   // wallet provider (lightweight)
   const { address, provider, connectWallet, disconnect } = useWallet();
+  const { network } = useWallet();
   const isConnected = !!address;
 
   // dropdown states
@@ -108,15 +109,6 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="px-3 py-1 text-sm rounded-md border">JOIN NOW</button>
-
-            <button
-              onClick={() => setOpen(true)}
-              className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm"
-            >
-              SIGN UP
-            </button>
-
             {/* Not connected: show connect button */}
             {!isConnected ? (
               <div ref={connectRef} className="relative">
@@ -167,7 +159,9 @@ export default function Navbar() {
                   aria-haspopup="menu"
                 >
                   <span className="font-medium">
-                    {ensName ? ensName : shortAddress(normalizedAddress ?? address)}
+                    {ensName
+                      ? ensName
+                      : shortAddress(normalizedAddress ?? address)}
                   </span>
                   <span className="text-xs text-gray-500">Wallet</span>
                 </button>
@@ -185,14 +179,21 @@ export default function Navbar() {
                       </div>
 
                       <div className="mt-2 text-xs text-gray-500">
-                        Network: <span className="font-medium">—</span>
+                        Network:{" "}
+                        <span className="font-medium">
+                          {network
+                            ? network.name || network.chainId || network?.chain
+                            : "—"}
+                        </span>
                       </div>
 
                       <div className="mt-3 flex gap-2">
                         <button
                           onClick={async () => {
                             try {
-                              await navigator.clipboard.writeText(normalizedAddress ?? address);
+                              await navigator.clipboard.writeText(
+                                normalizedAddress ?? address
+                              );
                             } catch (e) {
                               /* ignore */
                             }

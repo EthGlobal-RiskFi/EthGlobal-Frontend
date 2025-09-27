@@ -1,14 +1,15 @@
 // src/providers/WalletProvider.jsx
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
 import { ethers } from "ethers";
+import { createContext, useContext, useEffect, useState } from "react";
 
 const WalletContext = createContext();
 
 export function WalletProvider({ children }) {
   const [address, setAddress] = useState(null);
   const [provider, setProvider] = useState(null);
+  const [network, setNetwork] = useState(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -16,13 +17,19 @@ export function WalletProvider({ children }) {
 
     const p = new ethers.BrowserProvider(window.ethereum);
     setProvider(p);
+    // initial network
+    p.getNetwork()
+      .then((n) => setNetwork(n))
+      .catch(() => {});
 
     // check if already connected
     p.send("eth_accounts", [])
       .then((accounts) => {
         if (accounts && accounts.length) setAddress(accounts[0]);
       })
-      .catch(() => { /* ignore */ });
+      .catch(() => {
+        /* ignore */
+      });
 
     // handle account changes
     const handleAccountsChanged = (accounts) => {
@@ -31,9 +38,25 @@ export function WalletProvider({ children }) {
     };
 
     window.ethereum?.on?.("accountsChanged", handleAccountsChanged);
+    const handleChainChanged = async () => {
+      try {
+        const p2 = new ethers.BrowserProvider(window.ethereum);
+        setProvider(p2);
+        const n = await p2.getNetwork();
+        setNetwork(n);
+      } catch (e) {
+        setNetwork(null);
+      }
+    };
+
+    window.ethereum?.on?.("chainChanged", handleChainChanged);
 
     return () => {
-      window.ethereum?.removeListener?.("accountsChanged", handleAccountsChanged);
+      window.ethereum?.removeListener?.(
+        "accountsChanged",
+        handleAccountsChanged
+      );
+      window.ethereum?.removeListener?.("chainChanged", handleChainChanged);
     };
   }, []);
 
@@ -50,6 +73,12 @@ export function WalletProvider({ children }) {
       const signer = await p.getSigner();
       const addr = await signer.getAddress();
       setProvider(p);
+      try {
+        const n = await p.getNetwork();
+        setNetwork(n);
+      } catch (e) {
+        setNetwork(null);
+      }
       setAddress(addr);
       return addr;
     } catch (err) {
@@ -77,7 +106,16 @@ export function WalletProvider({ children }) {
   }
 
   return (
-    <WalletContext.Provider value={{ address, provider, connectWallet, disconnect, getSigner }}>
+    <WalletContext.Provider
+      value={{
+        address,
+        provider,
+        connectWallet,
+        disconnect,
+        getSigner,
+        network,
+      }}
+    >
       {children}
     </WalletContext.Provider>
   );
