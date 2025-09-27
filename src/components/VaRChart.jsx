@@ -1,15 +1,13 @@
-// src/components/VaRChart.jsx
 "use client";
 
 import React, { useMemo } from "react";
+import { motion } from "framer-motion";
 
 /**
  * VaRChart
  * Props:
- *  - vae: { VaR95: number, VaR99: number, ES95: number }  (values are negative for losses)
+ *  - vae: { VaR95: number, VaR99: number, ES95: number } (values negative for losses)
  *  - height?: number (default 160)
- *
- * Small SVG-based VaR visual — no external deps.
  */
 
 function fmtPct(v) {
@@ -17,7 +15,10 @@ function fmtPct(v) {
   return `${Math.round(Math.abs(v) * 100)}%`;
 }
 
-export default function VaRChart({ vae = { VaR95: 0, VaR99: 0, ES95: 0 }, height = 160 }) {
+export default function VaRChart({
+  vae = { VaR95: 0, VaR99: 0, ES95: 0 },
+  height = 160,
+}) {
   const metrics = useMemo(() => {
     const V95 = vae?.VaR95 ?? 0;
     const V99 = vae?.VaR99 ?? 0;
@@ -46,13 +47,24 @@ export default function VaRChart({ vae = { VaR95: 0, VaR99: 0, ES95: 0 }, height
   const esH = toPx(metrics.e95);
 
   return (
-    <div className="bg-white border rounded p-4">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-sm font-semibold">Risk (VaR &amp; ES)</div>
-        <div className="text-xs text-gray-500">Higher = larger downside</div>
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-5 shadow-sm"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-lg font-semibold text-[var(--color-text-100)]">
+          Risk (VaR &amp; ES)
+        </h3>
+        <div className="text-xs text-[var(--color-text-400)]">
+          Higher = larger downside
+        </div>
       </div>
 
-      <div className="flex items-end gap-4">
+      <div className="flex items-end gap-6">
+        {/* Chart */}
         <svg
           role="img"
           aria-label="Value at Risk chart"
@@ -71,7 +83,12 @@ export default function VaRChart({ vae = { VaR95: 0, VaR99: 0, ES95: 0 }, height
               <stop offset="100%" stopColor="#fb7185" />
             </linearGradient>
             <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.08" />
+              <feDropShadow
+                dx="0"
+                dy="2"
+                stdDeviation="3"
+                floodOpacity="0.08"
+              />
             </filter>
           </defs>
 
@@ -81,28 +98,72 @@ export default function VaRChart({ vae = { VaR95: 0, VaR99: 0, ES95: 0 }, height
             x2={svgWidth}
             y1={padding + innerHeight + 6}
             y2={padding + innerHeight + 6}
-            stroke="#e6e6e6"
+            stroke="#e5e7eb"
             strokeWidth="1"
           />
 
           {/* VaR95 bar */}
-          <g transform={`translate(${padding}, ${padding + (innerHeight - bar95H)})`}>
-            <rect width={barWidth} height={bar95H} rx="6" fill="url(#g95)" filter="url(#shadow)" />
-            <text x={barWidth / 2} y={-6} textAnchor="middle" fontSize="11" fill="#374151">
+          <g
+            transform={`translate(${padding}, ${
+              padding + (innerHeight - bar95H)
+            })`}
+          >
+            <rect
+              width={barWidth}
+              height={bar95H}
+              rx="6"
+              fill="url(#g95)"
+              filter="url(#shadow)"
+            />
+            <text
+              x={barWidth / 2}
+              y={-6}
+              textAnchor="middle"
+              fontSize="11"
+              fill="#9ca3af"
+            >
               {fmtPct(vae?.VaR95)}
             </text>
-            <text x={barWidth / 2} y={innerHeight + 22} textAnchor="middle" fontSize="11" fill="#6b7280">
+            <text
+              x={barWidth / 2}
+              y={innerHeight + 22}
+              textAnchor="middle"
+              fontSize="11"
+              fill="#6b7280"
+            >
               VaR95
             </text>
           </g>
 
           {/* VaR99 bar */}
-          <g transform={`translate(${padding + barWidth + gap}, ${padding + (innerHeight - bar99H)})`}>
-            <rect width={barWidth} height={bar99H} rx="6" fill="url(#g99)" filter="url(#shadow)" />
-            <text x={barWidth / 2} y={-6} textAnchor="middle" fontSize="11" fill="#374151">
+          <g
+            transform={`translate(${padding + barWidth + gap}, ${
+              padding + (innerHeight - bar99H)
+            })`}
+          >
+            <rect
+              width={barWidth}
+              height={bar99H}
+              rx="6"
+              fill="url(#g99)"
+              filter="url(#shadow)"
+            />
+            <text
+              x={barWidth / 2}
+              y={-6}
+              textAnchor="middle"
+              fontSize="11"
+              fill="#9ca3af"
+            >
               {fmtPct(vae?.VaR99)}
             </text>
-            <text x={barWidth / 2} y={innerHeight + 22} textAnchor="middle" fontSize="11" fill="#6b7280">
+            <text
+              x={barWidth / 2}
+              y={innerHeight + 22}
+              textAnchor="middle"
+              fontSize="11"
+              fill="#6b7280"
+            >
               VaR99
             </text>
           </g>
@@ -119,24 +180,46 @@ export default function VaRChart({ vae = { VaR95: 0, VaR99: 0, ES95: 0 }, height
               strokeDasharray="4 4"
               opacity="0.9"
             />
-            <circle cx={barWidth + gap / 2} cy={innerHeight - esH} r="5" fill="#10b981" stroke="#064e3b" strokeWidth="0.6" />
-            <text x={barWidth + gap / 2 + 12} y={innerHeight - esH + 4} fontSize="11" fill="#065f46">
+            <circle
+              cx={barWidth + gap / 2}
+              cy={innerHeight - esH}
+              r="5"
+              fill="#10b981"
+              stroke="#064e3b"
+              strokeWidth="0.6"
+            />
+            <text
+              x={barWidth + gap / 2 + 12}
+              y={innerHeight - esH + 4}
+              fontSize="11"
+              fill="#10b981"
+            >
               ES95 {fmtPct(vae?.ES95)}
             </text>
           </g>
         </svg>
 
-        <div className="flex-1 text-sm">
-          <div className="text-xs text-gray-500 mb-1">Summary</div>
-          <div className="text-sm text-gray-700">
-            VaR95: <span className="font-semibold">{fmtPct(vae?.VaR95)}</span> •
-            VaR99: <span className="font-semibold ml-1">{fmtPct(vae?.VaR99)}</span>
+        {/* Summary */}
+        <div className="flex-1 text-sm text-[var(--color-text-300)]">
+          <div className="text-xs text-[var(--color-text-400)] mb-1">
+            Summary
           </div>
-          <div className="text-xs text-gray-500 mt-2">
-            Expected Shortfall (ES95): <span className="font-medium">{fmtPct(vae?.ES95)}</span>
+          <div>
+            VaR95:{" "}
+            <span className="font-semibold text-[var(--color-text-100)]">
+              {fmtPct(vae?.VaR95)}
+            </span>{" "}
+            • VaR99:{" "}
+            <span className="font-semibold text-[var(--color-text-100)]">
+              {fmtPct(vae?.VaR99)}
+            </span>
+          </div>
+          <div className="text-xs mt-2">
+            Expected Shortfall (ES95):{" "}
+            <span className="font-medium">{fmtPct(vae?.ES95)}</span>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

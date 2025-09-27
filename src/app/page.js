@@ -13,7 +13,7 @@ import Footer from "../components/Footer"; // <-- add this
 export default function Page() {
   return (
     <>
-      <Navbar />
+      
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
@@ -53,7 +53,6 @@ export default function Page() {
           <PivotChart />
         </section>
       </main>
-      <Footer /> {/* <-- add this */}
     </>
   );
 }

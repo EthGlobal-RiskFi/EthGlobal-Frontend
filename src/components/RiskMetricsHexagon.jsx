@@ -1,7 +1,8 @@
+// src/components/RiskMetricsHexagon.jsx
 "use client";
 
+import { motion } from "framer-motion";
 import {
-  Legend,
   PolarAngleAxis,
   PolarGrid,
   PolarRadiusAxis,
@@ -12,135 +13,146 @@ import {
 } from "recharts";
 
 export default function RiskMetricsHexagon({ data }) {
-  // Format functions
-  const formatPercent = (n) => `${n.toFixed(2)}%`;
+  // -------- formatters --------
+  const formatPercent = (n) => `${(Number(n) || 0).toFixed(2)}%`;
   const formatUSD = (n) =>
     new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(n);
+    }).format(Number(n) || 0);
 
-  // Risk level colors
-  const getRiskColor = (value) => {
-    if (value <= 30) return "#22c55e"; // Low risk - green
-    if (value <= 70) return "#eab308"; // Medium risk - yellow
-    return "#ef4444"; // High risk - red
-  };
-
-  // Transform the data into the format needed for the radar chart
+  // -------- chart data (0–100) --------
   const chartData = [
     {
       metric: "Portfolio VaR",
-      value: Math.min(100, Math.max(0, data.portfolio_var_99_percent)),
-      fullMark: 100,
-      rawValue: data.portfolio_var_99_percent,
-      tooltip: `99% Value at Risk: ${formatPercent(
-        data.portfolio_var_99_percent
-      )}`,
+      value: clamp01(data?.portfolio_var_99_percent),
+      tooltip: `99% Value at Risk: ${formatPercent(data?.portfolio_var_99_percent)}`,
     },
     {
       metric: "Sharpe Ratio",
-      value: Math.min(100, Math.max(0, data.sharpe_ratio * 50)), // Scale to 0-100
-      fullMark: 100,
-      rawValue: data.sharpe_ratio,
-      tooltip: `Risk-adjusted return: ${data.sharpe_ratio.toFixed(2)}`,
+      // crude scale: 0–2 → 0–100 (cap)
+      value: clamp01((Number(data?.sharpe_ratio) || 0) * 50),
+      tooltip: `Risk-adjusted return: ${(Number(data?.sharpe_ratio) || 0).toFixed(2)}`,
     },
     {
       metric: "Volatility",
-      value: Math.min(100, Math.max(0, data.volatility * 100)),
-      fullMark: 100,
-      rawValue: data.volatility,
-      tooltip: `30-day volatility: ${formatPercent(data.volatility * 100)}`,
+      value: clamp01((Number(data?.volatility) || 0) * 100),
+      tooltip: `30-day volatility: ${formatPercent((Number(data?.volatility) || 0) * 100)}`,
     },
     {
       metric: "PnL %",
-      value: Math.min(100, Math.max(0, data.pnl_percent)),
-      fullMark: 100,
-      rawValue: data.pnl_percent,
-      tooltip: `Profit/Loss: ${formatPercent(data.pnl_percent)}`,
+      value: clamp01(Number(data?.pnl_percent) || 0),
+      tooltip: `Profit/Loss: ${formatPercent(Number(data?.pnl_percent) || 0)}`,
     },
     {
       metric: "Concentration",
-      value: Math.min(100, Math.max(0, data.concentration_hhi * 100)),
-      fullMark: 100,
-      rawValue: data.concentration_hhi,
-      tooltip: `Portfolio concentration: ${formatPercent(
-        data.concentration_hhi * 100
-      )}`,
+      value: clamp01((Number(data?.concentration_hhi) || 0) * 100),
+      tooltip: `Portfolio concentration: ${formatPercent((Number(data?.concentration_hhi) || 0) * 100)}`,
     },
     {
       metric: "Value USD",
-      value: Math.min(100, Math.max(0, (data.total_value_usd / 2000000) * 100)), // Scale to 0-100 (2M max)
-      fullMark: 100,
-      rawValue: data.total_value_usd,
-      tooltip: `Total value: ${formatUSD(data.total_value_usd)}`,
+      // relative scale to 2M just to visualize (cap)
+      value: clamp01(((Number(data?.total_value_usd) || 0) / 2_000_000) * 100),
+      tooltip: `Total value: ${formatUSD(Number(data?.total_value_usd) || 0)}`,
     },
   ];
 
   return (
-    <div className="w-full h-[400px] bg-white p-4 rounded-lg shadow">
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.002 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className="w-full h-[400px] rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-sm p-5"
+    >
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">Risk Metrics</h3>
-        <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-[#22c55e]" />
-            <span>Low</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-[#eab308]" />
-            <span>Medium</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-[#ef4444]" />
-            <span>High</span>
-          </div>
+        <h3 className="text-lg font-semibold text-[var(--color-text-100)]">
+          Risk Metrics
+        </h3>
+        <div className="flex items-center gap-4 text-xs text-[var(--color-text-400)]">
+          <LegendDot color="#22c55e" label="Low" />
+          <LegendDot color="#eab308" label="Medium" />
+          <LegendDot color="#ef4444" label="High" />
         </div>
       </div>
+
+      {/* Chart */}
       <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-          <PolarGrid gridType="polygon" />
-          <PolarAngleAxis
-            dataKey="metric"
-            tick={{
-              fill: "#4b5563",
-              fontSize: 12,
-              fontWeight: 500,
-            }}
+        <RadarChart data={chartData} margin={{ top: 6, right: 24, bottom: 6, left: 24 }}>
+          {/* gradient fill to match theme */}
+          <defs>
+            <linearGradient id="riskFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--color-grad-2)" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="var(--color-grad-1)" stopOpacity="0.25" />
+            </linearGradient>
+          </defs>
+
+          {/* softer polygon grid + rings */}
+          <PolarGrid
+            gridType="polygon"
+            stroke="rgba(255,255,255,0.16)"
+            radialLines={false}
           />
           <PolarRadiusAxis
             angle={30}
             domain={[0, 100]}
-            tick={{
-              fill: "#6b7280",
-              fontSize: 10,
-            }}
+            tick={false}
+            axisLine={false}
+            stroke="rgba(255,255,255,0.12)"
           />
+          <PolarAngleAxis
+            dataKey="metric"
+            tick={{ fill: "white", fontSize: 12, fontWeight: 600 }}
+          />
+
           <Radar
             name="Risk Metrics"
             dataKey="value"
-            stroke="#4f46e5"
-            fill="#4f46e5"
-            fillOpacity={0.4}
+            stroke="var(--color-grad-2)"
+            strokeWidth={2}
+            fill="url(#riskFill)"
+            isAnimationActive
+            dot={{ r: 2 }}
+            activeDot={{ r: 3 }}
           />
+
+          {/* glassy tooltip */}
           <Tooltip
+            cursor={{ stroke: "rgba(255,255,255,0.25)", strokeDasharray: "3 3" }}
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
-                const data = payload[0].payload;
+                const d = payload[0].payload;
                 return (
-                  <div className="bg-white p-2 border rounded-lg shadow-lg text-sm">
-                    <p className="font-medium text-gray-900">{data.metric}</p>
-                    <p className="text-gray-600">{data.tooltip}</p>
+                  <div className="bg-[rgba(17,24,39,0.9)] text-white border border-white/10 rounded-lg shadow-lg p-2 text-xs">
+                    <div className="font-semibold">{d.metric}</div>
+                    <div className="opacity-90">{d.tooltip}</div>
                   </div>
                 );
               }
               return null;
             }}
           />
-          <Legend />
         </RadarChart>
       </ResponsiveContainer>
-    </div>
+    </motion.div>
+  );
+}
+
+/* ---------- utils ---------- */
+function clamp01(n) {
+  const x = Number(n);
+  if (!Number.isFinite(x)) return 0;
+  return Math.max(0, Math.min(100, x));
+}
+
+function LegendDot({ color, label }) {
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
+      <span className="text-white">{label}</span>
+    </span>
   );
 }

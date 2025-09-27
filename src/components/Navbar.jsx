@@ -1,4 +1,3 @@
-// src/components/Navbar.jsx
 "use client";
 
 import { ethers } from "ethers";
@@ -7,35 +6,29 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useOutsideClick from "../hooks/useOutsideClick";
 import { useWallet } from "../providers/WalletProvider";
+import { motion } from "framer-motion";
 
 // lazy-load AuthModal to improve initial load
 const AuthModal = dynamic(() => import("./AuthModal"), { ssr: false });
 
-/** shorten address for UI */
 function shortAddress(addr = "") {
   if (!addr) return "";
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
 export default function Navbar() {
-  // auth modal
   const [open, setOpen] = useState(false);
 
-  // wallet provider (lightweight)
-  const { address, provider, connectWallet, disconnect, isProcessing } =
+  const { address, provider, connectWallet, disconnect, isProcessing, network } =
     useWallet();
-  const { network } = useWallet();
   const isConnected = !!address;
 
-  // dropdown states
   const [walletMenuOpen, setWalletMenuOpen] = useState(false);
   const [connectMenuOpen, setConnectMenuOpen] = useState(false);
 
-  // refs to detect outside click
   const connectRef = useRef(null);
   const walletRef = useRef(null);
 
-  // ENS name
   const [ensName, setEnsName] = useState(null);
 
   useOutsideClick(connectRef, {
@@ -47,7 +40,6 @@ export default function Navbar() {
     onEscape: () => setWalletMenuOpen(false),
   });
 
-  // checksum the address if possible
   const normalizedAddress = useMemo(() => {
     if (!address) return null;
     try {
@@ -57,7 +49,6 @@ export default function Navbar() {
     }
   }, [address]);
 
-  // lookup ENS when address changes (use provider if available, else fallback)
   useEffect(() => {
     let mounted = true;
     async function lookupENS() {
@@ -78,7 +69,6 @@ export default function Navbar() {
     };
   }, [address, provider]);
 
-  // body scroll lock while any dropdown open
   useEffect(() => {
     const anyOpen = connectMenuOpen || walletMenuOpen;
     const prev = document.body.style.overflow;
@@ -95,98 +85,69 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="bg-white shadow-sm">
+      <motion.nav
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className="fixed top-0 inset-x-0 z-50 bg-white/5 backdrop-blur border-b border-white/10"
+      >
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="text-lg font-bold text-indigo-600">
-              <Link href="/">CipherHealth</Link>
-            </div>
-
-            {/* <div className="hidden md:flex items-center gap-3 text-sm text-gray-600">
-              <Link href="/reports" className="hover:text-indigo-600">
-                Reports
-              </Link>
-            </div> */}
+            <Link
+              href="/"
+              className="text-lg font-bold text-[var(--color-text-100)] hover:text-[var(--color-grad-2)] transition-colors"
+            >
+              RobinHood
+            </Link>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Not connected: show connect button */}
             {!isConnected ? (
               <div ref={connectRef} className="relative">
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => {
                     setConnectMenuOpen((s) => !s);
                     setWalletMenuOpen(false);
                   }}
                   disabled={isProcessing}
-                  className={`px-3 py-1 ${
+                  className={`px-3 py-1 rounded-md text-sm font-medium ${
                     isProcessing
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-indigo-600 hover:bg-indigo-700"
-                  } text-white rounded-md text-sm flex items-center gap-2`}
+                      ? "bg-white/20 cursor-not-allowed text-[var(--color-text-400)]"
+                      : "bg-gradient-to-r from-[var(--color-grad-1)] to-[var(--color-grad-2)] text-white"
+                  }`}
                   aria-expanded={connectMenuOpen}
                   aria-haspopup="menu"
                 >
-                  {isProcessing ? (
-                    <>
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Processing...
-                    </>
-                  ) : (
-                    "Connect Wallet"
-                  )}
-                </button>
+                  {isProcessing ? "Processing..." : "Connect Wallet"}
+                </motion.button>
 
                 {connectMenuOpen && !isProcessing && (
                   <div
                     role="menu"
                     aria-label="Wallet connectors"
-                    className="absolute right-0 mt-2 w-60 bg-white border rounded shadow-lg z-50"
+                    className="absolute right-0 mt-2 w-60 bg-[var(--color-bg-900)] border border-white/10 rounded-xl shadow-lg z-50 p-2"
                   >
-                    <div className="py-2">
-                      <button
-                        onClick={handleConnectClick}
-                        className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm"
-                      >
-                        Connect with MetaMask / Injected Wallet
-                      </button>
-
-                      {!typeof window === "undefined" && !window?.ethereum ? (
-                        <div className="px-3 py-2 text-xs text-red-500">
-                          No injected wallet found in this browser
-                        </div>
-                      ) : null}
-                    </div>
+                    <button
+                      onClick={handleConnectClick}
+                      className="w-full text-left px-3 py-2 rounded hover:bg-white/5 text-sm text-[var(--color-text-100)]"
+                    >
+                      Connect with MetaMask / Injected Wallet
+                    </button>
                   </div>
                 )}
               </div>
             ) : (
               <div ref={walletRef} className="relative">
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => {
                     setWalletMenuOpen((s) => !s);
                     setConnectMenuOpen(false);
                   }}
-                  className="px-3 py-1 bg-gray-100 text-sm rounded-md flex items-center gap-2"
+                  className="px-3 py-1 bg-white/10 rounded-md text-sm flex items-center gap-2 text-[var(--color-text-100)]"
                   aria-expanded={walletMenuOpen}
                   aria-haspopup="menu"
                 >
@@ -195,57 +156,56 @@ export default function Navbar() {
                       ? ensName
                       : shortAddress(normalizedAddress ?? address)}
                   </span>
-                  <span className="text-xs text-gray-500">Wallet</span>
-                </button>
+                  <span className="text-xs text-[var(--color-text-400)]">
+                    Wallet
+                  </span>
+                </motion.button>
 
                 {walletMenuOpen && (
                   <div
                     role="menu"
                     aria-label="Wallet menu"
-                    className="absolute right-0 mt-2 w-64 bg-white border rounded shadow-lg z-50"
+                    className="absolute right-0 mt-2 w-64 bg-[var(--color-bg-900)] border border-white/10 rounded-xl shadow-lg z-50 p-3"
                   >
-                    <div className="px-4 py-3">
-                      <div className="text-xs text-gray-500">Connected</div>
-                      <div className="mt-1 text-sm text-gray-800 break-all">
-                        {normalizedAddress ?? address}
-                      </div>
+                    <div className="text-xs text-[var(--color-text-400)]">
+                      Connected
+                    </div>
+                    <div className="mt-1 text-sm text-[var(--color-text-100)] break-all">
+                      {normalizedAddress ?? address}
+                    </div>
 
-                      <div className="mt-2 text-xs text-gray-500">
-                        Network:{" "}
-                        <span className="font-medium">
-                          {network
-                            ? network.name || network.chainId || network?.chain
-                            : "—"}
-                        </span>
-                      </div>
+                    <div className="mt-2 text-xs text-[var(--color-text-400)]">
+                      Network:{" "}
+                      <span className="font-medium">
+                        {network
+                          ? network.name || network.chainId || network?.chain
+                          : "—"}
+                      </span>
+                    </div>
 
-                      <div className="mt-3 flex gap-2">
-                        <button
-                          onClick={async () => {
-                            try {
-                              await navigator.clipboard.writeText(
-                                normalizedAddress ?? address
-                              );
-                            } catch (e) {
-                              /* ignore */
-                            }
-                            setWalletMenuOpen(false);
-                          }}
-                          className="px-3 py-1 text-sm border rounded"
-                        >
-                          Copy
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            disconnect();
-                            setWalletMenuOpen(false);
-                          }}
-                          className="px-3 py-1 text-sm bg-red-50 text-red-600 rounded border"
-                        >
-                          Disconnect
-                        </button>
-                      </div>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(
+                              normalizedAddress ?? address
+                            );
+                          } catch {}
+                          setWalletMenuOpen(false);
+                        }}
+                        className="px-3 py-1 text-sm bg-white/10 rounded hover:bg-white/20 transition"
+                      >
+                        Copy
+                      </button>
+                      <button
+                        onClick={() => {
+                          disconnect();
+                          setWalletMenuOpen(false);
+                        }}
+                        className="px-3 py-1 text-sm bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 transition"
+                      >
+                        Disconnect
+                      </button>
                     </div>
                   </div>
                 )}
@@ -253,9 +213,8 @@ export default function Navbar() {
             )}
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
-      {/* AuthModal lazy-loaded above */}
       <AuthModal open={open} onClose={() => setOpen(false)} />
     </>
   );

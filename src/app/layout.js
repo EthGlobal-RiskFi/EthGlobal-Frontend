@@ -1,11 +1,12 @@
 // src/app/layout.js
 import "../styles/globals.css";
 import Navbar from "../components/Navbar";
+import Footer from  "../components/Footer";
 import { WalletProvider } from "../providers/WalletProvider";
 
 export const metadata = {
-  title: "CipherHealth — Starter",
-  description: "Frontend for CipherHealth dApp",
+  title: "RobinHood — Starter",
+  description: "Frontend for RobinHood dApp",
 };
 
 export default function RootLayout({ children }) {
@@ -13,7 +14,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="min-h-screen">
         <WalletProvider>
+        <Navbar />
           {children}
+        <Footer />
         </WalletProvider>
       </body>
     </html>
