@@ -2,7 +2,10 @@
 "use client";
 
 import { ethers } from "ethers";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { createContext, useContext, useEffect, useState } from "react";
+import sampleData from "../../public/sample.json";
+import { db } from "../lib/firebase";
 
 const WalletContext = createContext();
 
@@ -10,6 +13,7 @@ export function WalletProvider({ children }) {
   const [address, setAddress] = useState(null);
   const [provider, setProvider] = useState(null);
   const [network, setNetwork] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -60,6 +64,51 @@ export function WalletProvider({ children }) {
     };
   }, []);
 
+  // Function to send POST request and store response in Firestore
+  async function processRiskAppetite(walletAddress) {
+    setIsProcessing(true);
+    try {
+      console.log("Sending POST request with sample data...");
+
+      // Make POST request to the endpoint
+      const response = await fetch(
+        "http://10.125.9.225:5000/user_risk_appetite",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(sampleData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      console.log("Received response:", responseData);
+
+      // Store the response in Firestore using wallet address as document ID
+      const docRef = doc(db, "risk_appetites", walletAddress);
+      await setDoc(docRef, {
+        walletAddress: walletAddress,
+        requestData: sampleData,
+        responseData: responseData,
+        timestamp: serverTimestamp(),
+        createdAt: new Date().toISOString(),
+      });
+
+      console.log("Document written with ID: ", walletAddress);
+      return responseData;
+    } catch (error) {
+      console.error("Error processing risk appetite:", error);
+      throw error;
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
   async function connectWallet() {
     if (typeof window === "undefined") return;
     if (!window.ethereum) {
@@ -80,6 +129,15 @@ export function WalletProvider({ children }) {
         setNetwork(null);
       }
       setAddress(addr);
+
+      // Process risk appetite after successful wallet connection
+      try {
+        await processRiskAppetite(addr);
+      } catch (error) {
+        // Risk appetite processing failed, but wallet is still connected
+        console.error("Risk appetite processing failed:", error);
+      }
+
       return addr;
     } catch (err) {
       console.error("connectWallet error:", err);
@@ -114,6 +172,8 @@ export function WalletProvider({ children }) {
         disconnect,
         getSigner,
         network,
+        isProcessing,
+        processRiskAppetite,
       }}
     >
       {children}
