@@ -142,11 +142,29 @@ export default function TokenInput() {
     setAddress(res.normalized);
     setInputState("submitting");
     setMessage("Submitting job...");
-    // Use sample data and POST it to the URL
+
+    // First, try to fetch data from The Graph and log it
+    try {
+      setMessage("Fetching token balances from The Graph...");
+
+      // Fetch balances from The Graph
+      const graphData = await getBalances({
+        startTime: 1262304000, // Jan 1, 2010
+        endTime: Math.floor(Date.now() / 1000), // Current time
+        limit: 100, // Increase limit to get more tokens
+        page: 1,
+      });
+
+      console.log("The Graph data:", JSON.stringify(graphData, null, 2));
+    } catch (graphErr) {
+      console.error("Error fetching token balances from The Graph:", graphErr);
+    }
+
+    // Continue with existing sample data POST functionality
     try {
       setMessage("Using sample data for analysis...");
       const balances = sampleData;
-      console.log("Using sample balances:", balances);
+      console.log("Using sample balances for POST:", balances);
 
       // POST the sample data to the endpoint
       const urlToUse = POST_URL;
@@ -169,7 +187,6 @@ export default function TokenInput() {
 
         if (!resp.ok) {
           const txt = await resp.text().catch(() => "");
-
           console.error("POST failed:", resp.status, txt);
           setMessage(`Failed to POST balances: HTTP ${resp.status}`);
         } else {
@@ -183,6 +200,8 @@ export default function TokenInput() {
       console.error("Error using/posting sample data:", err);
       setMessage("Error using/posting sample data for analysis...");
     }
+
+    // Keep the existing analyze token functionality
     try {
       await startAnalyze(res.normalized, 1);
     } catch (err) {
