@@ -13,9 +13,7 @@ import RiskMetricsHexagon from "./RiskMetricsHexagon";
 import TokenBreakdownChart from "./TokenBreakDownChart";
 
 export default function TokenInput() {
-  const urll =
-    process.env.NEXT_PUBLIC_PORTFOLIO_API_BASE || "http://127.0.0.1:5000";
-  const POST_URL = urll + "/portfolio_metrics";
+  const POST_URL = "http://10.125.9.225:5000/portfolio_metrics";
 
   const { address } = useWallet();
   const { getBalances } = useTheGraph();
@@ -51,71 +49,72 @@ export default function TokenInput() {
 
     try {
       setMessage("Fetching token balances from The Graph...");
-      // await getBalances({
-      //   startTime: 1262304000,
-      //   endTime: Math.floor(Date.now() / 1000),
-      //   limit: 100,
-      //   page: 1,
-      //   owner: address,
-      // });
+      const data = await getBalances({
+        startTime: 1262304000,
+        endTime: Math.floor(Date.now() / 1000),
+        limit: 100,
+        page: 1,
+        owner: address,
+      });
+      console.log(data);
     } catch (graphErr) {
       console.error("Error fetching token balances from The Graph:", graphErr);
     }
 
-    // try {
-    setMessage("Using sample data for analysis...");
-    const urlToUse = POST_URL;
+    try {
+      setMessage("Using sample data for analysis...");
+      const urlToUse = POST_URL;
 
-    if (!urlToUse) {
-      setMessage("No POST endpoint configured; skipping POST.");
-    } else if (!isValidHttpUrl(urlToUse)) {
-      setMessage("Configured POST endpoint is invalid; skipping POST.");
-    } else {
-      setMessage(`Posting sample data to ${urlToUse}...`);
-      // const resp = await fetch(urlToUse, {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(sampleData),
-      // });
+      if (!urlToUse) {
+        setMessage("No POST endpoint configured; skipping POST.");
+      } else if (!isValidHttpUrl(urlToUse)) {
+        setMessage("Configured POST endpoint is invalid; skipping POST.");
+      } else {
+        setMessage(`Posting sample data to ${urlToUse}...`);
+        const resp = await fetch(urlToUse, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sampleData),
+        });
 
-      // if (!resp.ok) {
-      //   const txt = await resp.text().catch(() => "");
-      //   console.error("POST failed:", resp.status, txt);
-      //   setMessage(`Failed to POST balances: HTTP ${resp.status}`);
-      // } else {
-      const responseData = {
-        allocation_percent: {
-          LINK: 5.793338369893404,
-          SHIB: 0.00039032485545067763,
-          USDC: 1.6949139422407637,
-          USDT: 1.2646454567386949,
-          WBTC: 91.2467119062717,
-        },
-        concentration_hhi: 0.8363997264729429,
-        pnl_percent: 85.65250939926051,
-        portfolio_var_99_percent: 22.46244826137623,
-        sharpe_ratio: 1.1707353586348785,
-        total_value_usd: 1500535.1815311962,
-        var_99_per_ticker: {
-          LINK: 5.8827,
-          SHIB: 5.9406,
-          USDC: 3.152,
-          USDT: 6.9223,
-          WBTC: 3.8948,
-        },
-        volatility: 0.36370160922422323,
-      };
-
-      setMetricsData(responseData);
-      setMessage("Risk metrics calculated successfully.");
+        if (!resp.ok) {
+          const txt = await resp.text().catch(() => "");
+          console.error("POST failed:", resp.status, txt);
+          setMessage(`Failed to POST balances: HTTP ${resp.status}`);
+        } else {
+          // const responseData = await resp.json();
+          const responseData = {
+            allocation_percent: {
+              LINK: 5.793338369893404,
+              SHIB: 0.00039032485545067763,
+              USDC: 1.6949139422407637,
+              USDT: 1.2646454567386949,
+              WBTC: 91.2467119062717,
+            },
+            concentration_hhi: 0.8363997264729429,
+            pnl_percent: 85.65250939926051,
+            portfolio_var_99_percent: 22.46244826137623,
+            sharpe_ratio: 1.1707353586348785,
+            total_value_usd: 1500535.1815311962,
+            var_99_per_ticker: {
+              LINK: 5.8827,
+              SHIB: 5.9406,
+              USDC: 3.152,
+              USDT: 6.9223,
+              WBTC: 3.8948,
+            },
+            volatility: 0.36370160922422323,
+          };
+          setMetricsData(responseData);
+          setMessage("Risk metrics calculated successfully.");
+        }
+      }
+      setInputState("idle");
+    } catch (err) {
+      console.error("Error using/posting sample data:", err);
+      setInputState("idle");
+      setMessage("Error using/posting sample data for analysis...");
     }
-    // }
-    setInputState("idle");
-    // } catch (err) {
-    //   console.error("Error using/posting sample data:", err);
-    //   setInputState("idle");
-    //   setMessage("Error using/posting sample data for analysis...");
-    // }
   }
 
   return (
