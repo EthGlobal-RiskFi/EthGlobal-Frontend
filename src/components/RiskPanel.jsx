@@ -75,7 +75,7 @@ function MetricCard({ label, value }) {
 
 /* ----------------- main ----------------- */
 export default function RiskPanel({
-  apiBase = process.env.NEXT_PUBLIC_RISK_API_BASE || "http://10.125.9.225:5000",
+  apiBase = process.env.NEXT_PUBLIC_RISK_API_BASE || "http://127.0.0.1:5000",
   defaultTicker = "WBTC",
   // Note: incoming list may contain duplicates; we dedupe below.
   tickers = ["AAVE", "WBTC", "LINK", "MATIC", "COMP", "SUSHI", "UNI", "USDC", "WBTC"],

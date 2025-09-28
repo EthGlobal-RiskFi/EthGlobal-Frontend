@@ -91,7 +91,7 @@ function StatCard({ label, value, sub }) {
 
 /* ---------------- main ---------------- */
 export default function TechnicalPanel({
-  apiBase = process.env.NEXT_PUBLIC_TECH_API_BASE || "http://10.125.9.225:5000",
+  apiBase = process.env.NEXT_PUBLIC_TECH_API_BASE || "http://127.0.0.1:5000",
   defaultTicker = "AAVE",
   tickers = ["AAVE", "WBTC", "LINK", "MATIC", "COMP", "SUSHI", "UNI", "BTC", "USDC", "DAI"],
   minHeight = 520,
