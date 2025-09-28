@@ -1,6 +1,6 @@
 // src/app/reports/read/page.jsx
 import { Suspense } from "react";
-
+import ReportReader from "./ReportReader";
 // Keep the page itself a Server Component and wrap the client reader.
 export default function ReadReportPage() {
   return (
