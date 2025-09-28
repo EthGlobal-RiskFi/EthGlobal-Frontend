@@ -234,8 +234,7 @@ function StatCard({ label, value, sub }) {
 
 /* ---------------- main ---------------- */
 export default function TechnicalPanel({
-  // these props are kept to avoid refactors; they no longer matter for data
-  apiBase = "",
+  apiBase = process.env.NEXT_PUBLIC_TECH_API_BASE || "http://127.0.0.1:5000",
   defaultTicker = "AAVE",
   tickers = ["AAVE", "WBTC", "LINK", "MATIC", "COMP", "SUSHI", "UNI", "BTC", "USDC", "DAI"],
   minHeight = 520,

@@ -13,7 +13,9 @@ import RiskMetricsHexagon from "./RiskMetricsHexagon";
 import TokenBreakdownChart from "./TokenBreakDownChart";
 
 export default function TokenInput() {
-  const POST_URL = "http://10.125.9.225:5000/portfolio_metrics";
+  const urll =
+    process.env.NEXT_PUBLIC_PORTFOLIO_API_BASE || "http://127.0.0.1:5000";
+  const POST_URL = urll + "/portfolio_metrics";
 
   const { address } = useWallet();
   const { getBalances } = useTheGraph();
@@ -38,7 +40,9 @@ export default function TokenInput() {
 
     if (!address) {
       setInputState("invalid");
-      setMessage("Wallet not connected. Please connect your wallet and try again.");
+      setMessage(
+        "Wallet not connected. Please connect your wallet and try again."
+      );
       return;
     }
 
@@ -105,7 +109,8 @@ export default function TokenInput() {
           Analyze your portfolio
         </h3>
         <p className="mt-1 text-sm text-[var(--color-text-400)]">
-          One click → instant risk &amp; health snapshot using your wallet address.
+          One click → instant risk &amp; health snapshot using your wallet
+          address.
         </p>
       </div>
 

@@ -71,16 +71,16 @@ export function WalletProvider({ children }) {
       console.log("Sending POST request with sample data...");
 
       // Make POST request to the endpoint
-      const response = await fetch(
-        "http://10.125.9.225:5000/user_risk_appetite",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(sampleData),
-        }
-      );
+      const urll =
+        process.env.NEXT_PUBLIC_RISK_API_BASE || "http://127.0.0.1:5000";
+      const strurl = urll + "//user_risk_appetite";
+      const response = await fetch(strurl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(sampleData),
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
