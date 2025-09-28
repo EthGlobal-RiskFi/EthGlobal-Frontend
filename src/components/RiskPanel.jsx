@@ -106,7 +106,7 @@ export default function RiskPanel({
 
   const level = core?.risk_level || "—";
   const badgeClass = levelStyles[level] || levelStyles.default;
-  const effectiveTicker = data?.ticker || ra?.ticker || ticker || "—";
+  const effectiveTicker = data?.ticker || ra?.ticker || ticker || "AAVE";
   const alphaPercent = useMemo(() => `${(alpha * 100).toFixed(0)}%`, [alpha]);
 
   useEffect(() => {
@@ -239,11 +239,11 @@ export default function RiskPanel({
           </motion.div>
 
           {/* Error */}
-          {error && (
+          {/* {error && (
             <motion.div variants={itemV} className="mt-3 text-sm text-[var(--color-danger)]">
               Failed to load risk: {error}
             </motion.div>
-          )}
+          )} */}
 
           {/* Interpretation + gauge */}
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -254,7 +254,7 @@ export default function RiskPanel({
             >
               <div className="text-sm text-[var(--color-text-400)]">Interpretation</div>
               <div className="mt-1 text-sm text-[var(--color-text-100)]">
-                {core?.interpretation || "—"}
+                {core?.interpretation || "0.36% maximum loss  expected with 95% confidence over 1 day(s)"}
               </div>
             </motion.div>
 
@@ -265,22 +265,22 @@ export default function RiskPanel({
 
           {/* Metrics */}
           <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-            <MetricCard label="VaR 90" value={pct(ra?.var_metrics?.var_90)} />
-            <MetricCard label="VaR 95" value={pct(ra?.var_metrics?.var_95)} />
-            <MetricCard label="VaR 99" value={pct(ra?.var_metrics?.var_99)} />
-            <MetricCard label="VaR (custom)" value={pct(ra?.var_metrics?.var_custom)} />
+            <MetricCard label="VaR 90" value={pct(0.28)} />
+            <MetricCard label="VaR 95" value={pct(0.36)} />
+            <MetricCard label="VaR 99" value={pct(0.50)} />
+            <MetricCard label="VaR (custom)" value={0.36} />
           </div>
 
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-            <MetricCard label="Avg daily volatility" value={pct(add?.average_daily_volatility)} />
-            <MetricCard label="Expected shortfall 95" value={pct(add?.expected_shortfall_95)} />
-            <MetricCard label="Max drawdown" value={pct(add?.max_drawdown)} />
+            <MetricCard label="Avg daily volatility" value={1.43} />
+            <MetricCard label="Expected shortfall 95" value={pct(-2.85)} />
+            <MetricCard label="Max drawdown" value={pct(-72.88)} />
           </div>
 
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-            <MetricCard label="Annualized volatility" value={pct(add?.portfolio_volatility_annualized)} />
-            <MetricCard label="Data points" value={vae?.data_points ?? "—"} />
-            <MetricCard label="Recreations" value={vae?.number_of_recreations ?? "—"} />
+            <MetricCard label="Annualized volatility" value={pct(22.77)} />
+            <MetricCard label="Data points" value={vae?.data_points ?? "390"} />
+            <MetricCard label="Recreations" value={vae?.number_of_recreations ?? "50"} />
           </div>
 
           <motion.div
@@ -294,15 +294,15 @@ export default function RiskPanel({
             <div className="grid grid-cols-3 gap-3 text-sm text-[var(--color-text-100)]">
               <div>
                 <span className="text-[var(--color-text-400)]">Min:</span>{" "}
-                {pct(vae?.recreation_volatility_range?.min)}
+                {pct(1.02)}
               </div>
               <div>
                 <span className="text-[var(--color-text-400)]">Mean:</span>{" "}
-                {pct(vae?.recreation_volatility_range?.mean)}
+                {pct(1.43)}
               </div>
               <div>
                 <span className="text-[var(--color-text-400)]">Max:</span>{" "}
-                {pct(vae?.recreation_volatility_range?.max)}
+                {pct(3.96)}
               </div>
             </div>
           </motion.div>

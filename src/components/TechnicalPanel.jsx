@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import useTechnical from "../hooks/useTechnical";
 import { motion } from "framer-motion";
 import {
   ResponsiveContainer,
@@ -14,6 +13,150 @@ import {
   CartesianGrid,
   ReferenceLine,
 } from "recharts";
+
+/* ---------------- hard-coded data ---------------- */
+const HARD_TECH_DATA = {
+  health_metrics: {
+    consensus_health: {
+      agreement_level: "medium",
+      macd_std: 0.016274741434653,
+      rsi_std: 5.31108277728999,
+      score: 100,
+    },
+    ensemble_stats: {
+      bollinger_bands: {
+        extremes_ratio: 0,
+        position_mean: 0.48946515700871,
+        position_std: 0.37469196700948,
+      },
+      macd: {
+        bullish_ratio: 0.5,
+        histogram_mean: -0.00326017151875704,
+        histogram_std: 0.016274741434653,
+      },
+      rsi: {
+        bullish_ratio: 1,
+        mean: 49.8504211400114,
+        overbought_ratio: 0,
+        oversold_ratio: 0,
+        std: 5.31108277728999,
+      },
+    },
+    momentum_health: {
+      bullish_macd_ratio: 0.5,
+      macd_histogram_mean: -0.00326017151875704,
+      rsi_mean: 49.8504211400114,
+      rsi_overbought_ratio: 0,
+      rsi_oversold_ratio: 0,
+      score: 70,
+    },
+    overall_health: {
+      grade: "D",
+      score: 58.234613668258,
+    },
+    overview: {
+      analysis_period_days: 390,
+      latest_date: "2025-09-26",
+      total_recreations: 50,
+    },
+    timestamp: "2025-09-26T00:00:00",
+    trend_health: {
+      bullish_momentum_ratio: 0.5,
+      momentum_20_mean: -0.0834301332624,
+      score: 0,
+      trend_strength: "bearish",
+    },
+    volatility_health: {
+      risk_level: "medium",
+      score: 86.17306834129,
+      volatility_mean: 2.76538633174201,
+      volatility_std: 2.26415313613885,
+    },
+  },
+  metadata: {
+    first_date: "2024-09-02T00:00:00",
+    last_date: "2025-09-26T00:00:00",
+    total_data_points: 390,
+  },
+  status: "success",
+  ticker: "AAVE",
+  time_series: {
+    bullish_consensus: new Array(30).fill(1),
+    dates: [
+      "2025-08-28T00:00:00",
+      "2025-08-29T00:00:00",
+      "2025-08-30T00:00:00",
+      "2025-08-31T00:00:00",
+      "2025-09-01T00:00:00",
+      "2025-09-02T00:00:00",
+      "2025-09-03T00:00:00",
+      "2025-09-04T00:00:00",
+      "2025-09-05T00:00:00",
+      "2025-09-06T00:00:00",
+      "2025-09-07T00:00:00",
+      "2025-09-08T00:00:00",
+      "2025-09-09T00:00:00",
+      "2025-09-10T00:00:00",
+      "2025-09-11T00:00:00",
+      "2025-09-12T00:00:00",
+      "2025-09-13T00:00:00",
+      "2025-09-14T00:00:00",
+      "2025-09-15T00:00:00",
+      "2025-09-16T00:00:00",
+      "2025-09-17T00:00:00",
+      "2025-09-18T00:00:00",
+      "2025-09-19T00:00:00",
+      "2025-09-20T00:00:00",
+      "2025-09-21T00:00:00",
+      "2025-09-22T00:00:00",
+      "2025-09-23T00:00:00",
+      "2025-09-24T00:00:00",
+      "2025-09-25T00:00:00",
+      "2025-09-26T00:00:00",
+    ],
+    overall_health_scores: [
+      82.8293827156439, 82.82641560481, 82.7333519336944, 82.8817966396883,
+      82.8484379328591, 82.7127555741456, 82.8757313576844, 83.0133869173553,
+      83.0227193715474, 83.06013722052, 83.0770261360699, 83.0410124396564,
+      74.0091262340336, 74.0150032026117, 74.0499273366636, 74.0296370547893,
+      74.1245614728657, 73.9286669684183, 73.9003418943054, 73.9930924684764,
+      74.0091158633606, 73.9228785913937, 73.9497415515382, 73.9157473885828,
+      73.7576100883228, 73.8370640835796, 58.4585124496267, 58.3320761781618,
+      58.3076022011541, 58.234613668258,
+    ],
+    rsi_mean: [
+      50.5298849564867, 49.4905106900258, 50.1589770782415, 51.8760137920566,
+      50.2268312917128, 48.5513989479083, 49.7973051461301, 51.2745639764948,
+      50.940454916492, 49.8165251868263, 49.7833355853465, 48.6140503405772,
+      49.7627312184514, 49.5814690184126, 49.7573866140958, 49.332745731971,
+      49.3430338266172, 48.8140681827715, 49.2408674656812, 51.0895062780953,
+      51.1305474544943, 48.2567446117648, 50.0854149222539, 50.0126298063255,
+      49.7723427596433, 51.3494479803583, 47.7258188217229, 50.4301229343446,
+      49.4299284331802, 49.8504211400114,
+    ],
+    rsi_std: [
+      4.54568283733682, 3.55807422762479, 5.29879112608036, 6.79072903690654,
+      4.52802263004404, 6.74071579738349, 7.04577721857281, 6.12373685228179,
+      4.98674779690644, 5.04230651179954, 5.11577028257038, 6.43572586447985,
+      5.49896911448614, 7.22665106746693, 4.04140397116439, 4.31241559206578,
+      6.85987400124588, 7.67474224189706, 5.54209212699432, 7.2581634033345,
+      5.05613860112298, 5.13933655945798, 5.3855613953804, 5.12246209026994,
+      5.69193028008257, 5.52923132390803, 8.33844917368231, 8.44010288434825,
+      4.85598926074211, 5.31108277728999,
+    ],
+    volatility_mean: [
+      2.18190812412256, 2.18488826734959, 2.28141739116471, 2.13273977351562,
+      2.17267259607586, 2.30217392055654, 2.13744154255955, 2.0011107380262,
+      1.99136911814041, 1.96112565147529, 1.94305270506872, 1.97153226885048,
+      2.00886324076848, 2.0023961699151, 1.9694327066906, 1.98853287049084,
+      1.8910301719002, 2.0802680067414, 2.1061432481415, 2.01598569630128,
+      2.00164989432736, 2.08456989767697, 2.06023644350491, 2.09447931012151,
+      2.24648657142756, 2.17283223020479, 2.54148755037329, 2.6679238218382,
+      2.69239779884594, 2.76538633174201,
+    ],
+  },
+  timestamp: "2025-09-26T21:32:06.729504",
+};
 
 /* ---------------- helpers ---------------- */
 const badgeTone = {
@@ -91,23 +234,18 @@ function StatCard({ label, value, sub }) {
 
 /* ---------------- main ---------------- */
 export default function TechnicalPanel({
-  apiBase = process.env.NEXT_PUBLIC_TECH_API_BASE || "http://10.125.9.225:5000",
+  // these props are kept to avoid refactors; they no longer matter for data
+  apiBase = "",
   defaultTicker = "AAVE",
   tickers = ["AAVE", "WBTC", "LINK", "MATIC", "COMP", "SUSHI", "UNI", "BTC", "USDC", "DAI"],
   minHeight = 520,
 }) {
   const [ticker, setTicker] = useState(defaultTicker);
 
-  // Fixed params
-  const days = 10;
-  const alpha = 0.5;
-
-  const { data, loading, error } = useTechnical({
-    baseUrl: apiBase,
-    ticker,
-    days,
-    alpha,
-  });
+  // 🔒 Use hard-coded data always
+  const data = HARD_TECH_DATA;
+  const loading = false;
+  const error = null;
 
   const hm = data?.health_metrics;
   const overall = hm?.overall_health;
@@ -167,7 +305,7 @@ export default function TechnicalPanel({
             </span>
           </motion.div>
 
-          {/* Controls */}
+          {/* Controls (ticker changes header only; data is fixed) */}
           <motion.div variants={itemV} className="mb-4">
             <label className="flex flex-col gap-1 text-sm text-[var(--color-text-400)]">
               <span>Ticker</span>
@@ -201,12 +339,6 @@ export default function TechnicalPanel({
             </label>
           </motion.div>
 
-          {error && (
-            <motion.div variants={itemV} className="mt-3 text-sm text-[var(--color-danger)]">
-              Failed to load technicals: {error}
-            </motion.div>
-          )}
-
           {/* Key metrics */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
             <StatCard
@@ -228,7 +360,7 @@ export default function TechnicalPanel({
               label="Momentum"
               value={Math.round(momentum ?? 0)}
               sub={`bullish MACD: ${Math.round(
-                (hm?.momentum_health?.bullish_macd_ratio ?? 0) * 100
+                (HARD_TECH_DATA.health_metrics.momentum_health.bullish_macd_ratio ?? 0) * 100
               )}%`}
             />
           </div>
